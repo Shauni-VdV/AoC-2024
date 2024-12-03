@@ -13,12 +13,12 @@ console.log(reports);
 // safe = any 2 numbers differ by max 3 (value)
 
 let safeCount = 0;
-let safeReports = reports.forEach(report => {
-    if(isSafe(report)){
+reports.forEach(report => {
+    if(isSafe2(report)){
         console.log('Safe:', report);
         safeCount++;
     } else {
-        console.log('Not safe:', report);
+        console.log('Unsafe:', report);
     }
 });
 
@@ -49,4 +49,30 @@ function isSafe(report: number[]): boolean {
     });
     return safe;
 }
+// PT2
 
+function isSafe2(report: number[]): boolean {
+    if(isSafe(report)){
+        return true;
+    } else {
+        return isSafeWithDampener(report);
+    }
+}
+
+function isSafeWithDampener(report: number[]) : boolean {
+    let safeCount = 0;
+
+    // remove every level at a time, check if the report is safe
+    report.forEach((level, index) => {
+        let reportCopy = [...report];
+        reportCopy.splice(index, 1);
+
+        if(isSafe(reportCopy)){
+            console.log('safe by removing ', report[index], reportCopy);
+            safeCount++;
+        }
+    });
+    
+    console.log('Safe count with dampener:', safeCount);
+    return safeCount > 0;
+}
