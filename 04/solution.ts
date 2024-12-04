@@ -9,7 +9,7 @@ const maxCol = rows[0].length -1
 const grid = rows.map(row => row.split(''));
 printMatrix(grid);
 
-
+console.log(isMatchInDirection(0, 0, Direction.Right))
 console.log('total matches: ' , findMatches(grid))
 function findMatches(grid: string[][]): number {
     let matches = 0;
@@ -20,12 +20,9 @@ function findMatches(grid: string[][]): number {
         for(let col = 0; col < grid[row].length; col++) {
             let currElement : string = grid[row][col];
             if(currElement === 'X'){
-                console.log('found first letter', currElement);
-
-                let word : string[] = ['X', 'M', 'A', 'S'];
                 for(let i = 1; i <= 8; i++){
                     // correct start value, find next letter in adjacent cells
-                    if(isMatchInDirection(false, row, col, i)){
+                    if(isMatchInDirection(row, col, i)){
                         console.log('found full word in direction:', i );
                         matches++;
                     }
@@ -39,18 +36,20 @@ function findMatches(grid: string[][]): number {
     return matches;
 }
 
-function isMatchInDirection(reverse: boolean, startRow: number, startCol: number, direction : Direction): boolean{
+function isMatchInDirection(startRow: number, startCol: number, direction : Direction): boolean{
   let match = true;
-  let word = reverse ? ['A', 'M', 'X'] : ['M', 'A', 'S'];
+  let word = ['M', 'A', 'S'];
 
   let row: number;
   let col: number;
-  for(let i = 1; i < word.length; i++){
+  for(let i = 0; i < word.length; i++){
     [row, col] = moveToAdjacent(startRow, startCol, direction)[0];
     console.log('moved to:')
+    startRow = row;
+    startCol = col;
     console.log('row', row, 'max:', maxRow)
     console.log('col', col, 'max:', maxCol)
-    if((0 <= row && row <= maxRow ) && (0<= col && col <= maxCol)){
+    if((0 <= row && row <= maxRow ) && (0 <= col && col <= maxCol)){
         console.log('letter', grid[row][col])
         if(word[i] === grid[row][col]){
             console.log(word[i] + ' matches index ' + i + ' in word: ' + word);
@@ -59,6 +58,7 @@ function isMatchInDirection(reverse: boolean, startRow: number, startCol: number
         }
     } else {
         console.log('out of bounds')
+        match = false;
     }
    
   }
@@ -67,7 +67,7 @@ function isMatchInDirection(reverse: boolean, startRow: number, startCol: number
 
 
 function moveToAdjacent(startRow : number, startColumn: number , direction: Direction): number[][]{
-    console.log('moving to adjacent', direction)
+    console.log('moving to adjacent in direction', direction)
     let newCoord : number[][];
     switch(direction){
         case Direction.Up:
