@@ -8,9 +8,7 @@ const maxCol = rows[0].length -1
 
 const grid = rows.map(row => row.split(''));
 printMatrix(grid);
-
-console.log(isMatchInDirection(0, 0, Direction.Right))
-console.log('total matches: ' , findMatches(grid))
+// PART 1
 function findMatches(grid: string[][]): number {
     let matches = 0;
     let word = 'XMAS';
@@ -97,6 +95,51 @@ function moveToAdjacent(startRow : number, startColumn: number , direction: Dire
     }
     return newCoord;
 }
+
+function getAdjacentValue(startRow: number, startColumn: number, direction: Direction): string{
+    let row: number;
+    let col: number;
+    [row, col] = moveToAdjacent(startRow, startColumn, direction)[0];
+    if(0 <= row && row <= maxRow && 0 <= col && col <= maxCol){
+        return grid[row][col];
+    } return '';
+}
+
+
+// Part 2:
+
+console.log('xes:', findXes(grid));
+// 1: Find 'A'
+// 2: Create string of topleft, mid, bottomright & bottomleft, mid, topright
+// 3: check if both strings are equal to 'SAM' or 'MAS'
+function findXes(grid: string[][]): number {
+    let matches = 0;
+    for (let row = 0; row < grid.length; row++) {
+        for(let col = 0; col < grid[row].length; col++) {
+            let currElement: string = grid[row][col];
+            if(currElement === "A"){
+                checkDiagonals(row, col) ? matches++ : null;
+            }
+        }
+    }
+
+   
+    return matches;
+}
+
+function checkDiagonals(row: number, col: number): boolean{
+    // Both diagonals must be 'SAM' or 'MAS'
+    let topLeft = getAdjacentValue(row, col, Direction.UpLeft);
+    let bottomRight = getAdjacentValue(row, col, Direction.DownRight);
+    let bottomLeft = getAdjacentValue(row, col, Direction.DownLeft);
+    let topRight = getAdjacentValue(row, col, Direction.UpRight);
+
+   let diagonal1 = (topLeft + grid[row][col] + bottomRight) === 'SAM' || (topLeft + grid[row][col] + bottomRight) === 'MAS';
+   let diagonal2 = (bottomLeft + grid[row][col] + topRight) === 'SAM' || (bottomLeft + grid[row][col] + topRight) === 'MAS';
+
+   return diagonal1 && diagonal2;
+}
+
 
 
 
