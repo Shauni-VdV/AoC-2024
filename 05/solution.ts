@@ -1,16 +1,6 @@
 import { readFileSync } from 'fs';
 const data = readFileSync('../AOC_2024/05/input.txt', 'utf8');
 
-/**
- * --- DATA INPUT MAPPING ---
-*/
-
-// Section 1 = page ordening rules ( array of strings, 'val|val')
-const rulesInput = data.split('\n').filter(str => str.match(/\|/)).map(str => str.replace(/\r/g,''));
-
-// Section 2 = list of updates (array of strings, 'val,val,val,val,...')
-const updatesInput = data.split('\n').filter(str => str.match('\,')).map(str => str.replace(/\r/g,''));
-
 
 /**
  * --- HELPERS ---
@@ -24,6 +14,19 @@ export class Rule {
         this.next = next;
     }
 }
+
+
+/**
+ * --- DATA INPUT MAPPING ---
+*/
+
+// Section 1 = page ordening rules ( array of strings, 'val|val')
+const rulesInput = data.split('\n').filter(str => str.match(/\|/)).map(str => str.replace(/\r/g,''));
+let rules = parseRules(rulesInput);
+
+// Section 2 = list of updates (array of strings, 'val,val,val,val,...')
+const updatesInput = data.split('\n').filter(str => str.match('\,')).map(str => str.replace(/\r/g,''));
+
 
 function parseUpdate(update: string): number[] {
     return update.split(',').map(page => parseInt(page));
@@ -65,33 +68,35 @@ function getMiddlePages(updates: string[]){
 
 function getCorrectUpdates(updates: string[]): string[] {
     let correctUpdates: string[] = [];
-    let rules = parseRules(rulesInput);
     updates.forEach(update => {
-        let pages = parseUpdate(update);
-        let isCorrect = true;
-        // console.log('-------------------------------------')
-        // console.log('Verifying update', update)
-        pages.forEach((page, index) => {
-            // get rule for page
-            let rulesForPage = findRules(page, rules);
-            rulesForPage.forEach(rule => {
-                if(rule && pages.indexOf(rule.next) != -1 && pages.indexOf(rule.first) != -1){
-                    // console.log('rule:', rule);
-                    // Get index of rule pages in update list
-                    // console.log('rule first index:', pages.indexOf(rule.first), 'rule next index:', pages.indexOf(rule.next));
-                    if(pages.indexOf(rule.next) < pages.indexOf(rule.first)){
-                        // console.log('rule not followed (!)');
-                        isCorrect = false;
-                    }
-                }
-            });
-        })
-        if(isCorrect){
+        if(isCorrect(update)){
             correctUpdates.push(update);
         }
     });
-
     return correctUpdates
+}
+
+function isCorrect(update: string) : boolean {
+    let pages = parseUpdate(update);
+    let isCorrect = true;
+    // console.log('-------------------------------------')
+    // console.log('Verifying update', update)
+    pages.forEach((page, index) => {
+        // get rule for page
+        let rulesForPage = findRules(page, rules);
+        rulesForPage.forEach(rule => {
+            if(rule && pages.indexOf(rule.next) != -1 && pages.indexOf(rule.first) != -1){
+                // console.log('rule:', rule);
+                // Get index of rule pages in update list
+                // console.log('rule first index:', pages.indexOf(rule.first), 'rule next index:', pages.indexOf(rule.next));
+                if(pages.indexOf(rule.next) < pages.indexOf(rule.first)){
+                    // console.log('rule not followed (!)');
+                    isCorrect = false;
+                }
+            }
+        });
+    });
+    return isCorrect;
 }
 
 /**
@@ -100,7 +105,33 @@ function getCorrectUpdates(updates: string[]): string[] {
 
 (function solutionPt2(){
     let incorrectUpdates = getIncorrectUpdates();
-    console.log("Incorrect updates", incorrectUpdates)
+    console.log("Incorrect updates", incorrectUpdates);
+
+    let correctedUpdates = [];
+
+    incorrectUpdates.forEach((update, index) => {
+        console.log("Correcting update ", index, "of ", incorrectUpdates.length);
+        let pages = parseUpdate(update);
+
+        let temp = [...pages];
+        temp = temp.sort((a,b) => {
+            // find relevant rules
+            let rulesForUpdate = rules.filter(rule => temp.indexOf(rule.first) != -1 || temp.indexOf(rule.next) != -1);
+            // if a is before b in the rules, it needs to be sorted before b, so return -1
+            // 
+            return rulesForUpdate.find(rule => rule.first === a && rule.next === b) ? -1 : 1;
+        })
+                
+        correctedUpdates.push(temp.join(','));
+
+    });
+
+
+    let middles = getMiddlePages(correctedUpdates);
+    let total = middles.reduce((acc, curr) => acc + curr, 0);
+    console.log('total:', total);
+
+
 })();
 
 function getIncorrectUpdates(){
@@ -109,4 +140,3 @@ function getIncorrectUpdates(){
     console.log('correct updates', correctUpdates);
     return updatesInput.filter((u) => correctUpdates.indexOf(u) === -1)
 }
-
