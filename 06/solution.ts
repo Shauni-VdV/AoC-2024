@@ -16,6 +16,7 @@ enum Direction {
 }
 
 class Tile {
+    value: string;
     Type: number; // 0 = open, 1 = obstacle, 3 = guard
     isTraversedByGuard: boolean;
 }
@@ -49,23 +50,23 @@ class Map {
     print(){
         console.log('Guard is at col: ', this.guard.currentX, 'row: ', this.guard.currentY, 'facing', this.guard.currentDirection);
         this.grid.forEach(row => {
-            console.log(row.join(' '));
+            console.log(row.map((tile) => tile.value).join(' '));
         });
     }
 }
 
-function findGuard(grid: string[][]) : Guard{
+function findGuard(grid: Tile[][]) : Guard{
     let guard: Guard = null;
 
     for(let row = 0; row < grid.length; row++){
         for(let col = 0; col < grid[row].length; col++){
-            let value = grid[row][col];
-            if(/v|\^|\<|\>/.test(value)){
+            let tile: Tile = grid[row][col];
+            if(tile.Type == 3){
                 console.log("FOUND GUARD");
                 let initGuard = new Guard();
                 initGuard.currentX = col;
                 initGuard.currentY = row;
-                initGuard.currentDirection = grid[row][col] as Direction;
+                initGuard.currentDirection = tile.value as Direction;
                 console.log(initGuard);
                 guard = initGuard;
             }
@@ -76,10 +77,27 @@ function findGuard(grid: string[][]) : Guard{
 
 
 (function solvePt1(){
+    let rowsWithTiles = rows.map((row) => row.map((tile, index) => {
+        console.log(tile);
+        let tileType : number;
+        switch(tile){
+            case '.':
+                tileType = 0;
+                break;
+            case '#':
+                tileType = 1;
+                break;
+            default:
+                tileType = 3;
+                break;
+        }
+        return Object.assign(new Tile(), {value: tile, Type: tileType, isTraversedByGuard: false});
+    }));
+        
 
-    let map : Map = new Map(rows.map((row) => row.map((tile) => Object.assign(new Tile(), {Type: tile}));
+    let map : Map = new Map(rowsWithTiles);
     map.print();
 
-    map.moveGuard(Direction.UP);
-    map.print();
+    // map.moveGuard(Direction.UP);
+    // map.print();
 })();
