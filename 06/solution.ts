@@ -15,17 +15,35 @@ enum Direction {
     RIGHT = '>'
 }
 
+class Tile {
+    Type: number; // 0 = open, 1 = obstacle, 3 = guard
+    isTraversedByGuard: boolean;
+}
+
 class Map {
-    grid: string[][];
+    grid: Tile[][];
     guard: Guard;
 
-    constructor(grid: string[][]){
+    constructor(grid: Tile[][]){
         this.grid = grid;
         this.guard = findGuard(grid);
     }
 
     moveGuard(direction: Direction){
-
+        switch(direction){
+            case Direction.UP:
+                this.guard.currentY--;
+                break;
+            case Direction.DOWN:
+                this.guard.currentY++;
+                break;
+            case Direction.LEFT:
+                this.guard.currentX--;
+                break;
+            case Direction.RIGHT:
+                this.guard.currentX++;
+                break;
+        }
     }
 
     print(){
@@ -42,7 +60,6 @@ function findGuard(grid: string[][]) : Guard{
     for(let row = 0; row < grid.length; row++){
         for(let col = 0; col < grid[row].length; col++){
             let value = grid[row][col];
-            console.log('value', value);    
             if(/v|\^|\<|\>/.test(value)){
                 console.log("FOUND GUARD");
                 let initGuard = new Guard();
@@ -59,6 +76,10 @@ function findGuard(grid: string[][]) : Guard{
 
 
 (function solvePt1(){
-    let map : Map = new Map(rows);
+
+    let map : Map = new Map(rows.map((row) => row.map((tile) => Object.assign(new Tile(), {Type: tile}));
+    map.print();
+
+    map.moveGuard(Direction.UP);
     map.print();
 })();
