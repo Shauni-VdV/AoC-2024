@@ -60,32 +60,32 @@ class Guard {
                 case Direction.UP:
                     // turn right
                     this.currentDirection = Direction.RIGHT;
-                    nextTile = grid[this.currentRow][this.currentCol + 1];
+                    // nextTile = grid[this.currentRow][this.currentCol + 1];
                     break;
                 case Direction.DOWN:
                     // turn left
                     this.currentDirection = Direction.LEFT;
-                    nextTile = grid[this.currentRow][this.currentCol - 1];
+                    // nextTile = grid[this.currentRow][this.currentCol - 1];
                     break;
                 case Direction.LEFT:
                     // turn up
                     this.currentDirection = Direction.UP;
-                    nextTile = grid[this.currentRow - 1][this.currentCol];
+                    // nextTile = grid[this.currentRow - 1][this.currentCol];
                     break;
                 case Direction.RIGHT:
                     // turn down
                     this.currentDirection = Direction.DOWN;
-                    nextTile = grid[this.currentRow + 1][this.currentCol];
+                    // nextTile = grid[this.currentRow + 1][this.currentCol];
                     break;
             }
-            // dan bewegen
-            this.currentRow = nextTile.rowIndex;
-            this.currentCol = nextTile.colIndex;
+            // // dan bewegen
+            // this.currentRow = nextTile.rowIndex;
+            // this.currentCol = nextTile.colIndex;
 
-            currentTile.Type = 0; // 'huidige' tile is geen guard meer
-            nextTile.isTraversedByGuard = true; // nieuwe tile is traversed
-            nextTile.Type = 3; // nieuwe tile is guard
-            nextTile.value = this.currentDirection; // set direction
+            // currentTile.Type = 0; // 'huidige' tile is geen guard meer
+            // nextTile.isTraversedByGuard = true; // nieuwe tile is traversed
+            // nextTile.Type = 3; // nieuwe tile is guard
+            // nextTile.value = this.currentDirection; // set direction
         } else {
             // enkel bewegen in huidige richting
             this.currentRow = nextTile.rowIndex;
@@ -294,7 +294,7 @@ function findGuard(grid: Tile[][]) : Guard{
                     break;
                 }
             }
-            map.print();
+            // map.print();
         }
     });
     console.log('obj: ' + objectsLoopCOunt);
