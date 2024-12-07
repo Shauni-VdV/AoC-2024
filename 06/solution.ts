@@ -16,17 +16,32 @@ class Guard {
         console.log('current tile', currentTile);
         switch(this.currentDirection){
             case Direction.UP:
-                nextTile = grid[this.currentRow - 1][this.currentCol];
+                try {
+                    nextTile = grid[this.currentRow - 1][this.currentCol];
+                } catch (e) {
+                    nextTile = undefined;
+                }
                 break;
             case Direction.DOWN:
-                nextTile = grid[this.currentRow + 1][this.currentCol ];
-
+                try {
+                    nextTile = grid[this.currentRow + 1][this.currentCol ];
+                } catch (e) {
+                    nextTile = undefined;
+                }
                 break;
             case Direction.LEFT:
-                nextTile = grid[this.currentRow][this.currentCol - 1];
+                try {
+                    nextTile = grid[this.currentRow][this.currentCol - 1];
+                } catch (e) {
+                    nextTile = undefined;
+                }
                 break;
             case Direction.RIGHT:
-                nextTile = grid[this.currentRow][this.currentCol + 1];
+                try{ 
+                    nextTile = grid[this.currentRow][this.currentCol + 1];
+                } catch (e) {
+                    nextTile = undefined;
+                }
                 break;
         }
         console.log("Attempting to move to tile", nextTile)
@@ -183,7 +198,6 @@ function findGuard(grid: Tile[][]) : Guard{
 
     while(!map.guard.outOfBounds){
         map.moveGuard();
-        map.print();
     }
     map.getTraversalCount();
 
