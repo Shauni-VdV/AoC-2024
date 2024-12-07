@@ -111,16 +111,49 @@ class Tile {
 
 class Map {
     grid: Tile[][];
+    initialGrid: Tile[][];
     guard: Guard;
+    initialGuard: Guard;
+
+    visitedGuardStates: Set<string>;
 
     constructor(grid: Tile[][]){
-        this.grid = grid;
-        this.guard = findGuard(grid);
-        grid[this.guard.currentRow][this.guard.currentCol].isTraversedByGuard = true; // eerste tile is traversed
+        // deepcopy for reset
+        this.initialGrid = grid.map(row => 
+            row.map(tile => Object.assign(new Tile(), {
+                value: tile.value,
+                Type: tile.Type,
+                isTraversedByGuard: tile.isTraversedByGuard,
+                colIndex: tile.colIndex,
+                rowIndex: tile.rowIndex
+            }))
+        );
+
+        // Initialize the current grid and guard
+        this.grid = this.initialGrid.map(row =>
+            row.map(tile => Object.assign(new Tile(), tile))
+        );
+        this.guard = findGuard(this.grid);
+        this.grid[this.guard.currentRow][this.guard.currentCol].isTraversedByGuard = true; // First tile is traversed
+
+
+        this.visitedGuardStates = new Set();
+
     }
 
     moveGuard(){
         this.grid = this.guard.move(this.grid);
+
+        const state = `${this.guard.currentRow},${this.guard.currentCol},${this.guard.currentDirection}`;
+        this.visitedGuardStates.add(state);
+
+    }
+
+    isLooping() : boolean{
+        // guard goes in loop if the same state is reached twice (position and direction)
+        console.log("Visited states: ", this.visitedGuardStates);
+        let isLooping = this.visitedGuardStates.has(`${this.guard.currentRow},${this.guard.currentCol},${this.guard.currentDirection}`);
+        return isLooping;
     }
 
     print(){
@@ -139,10 +172,22 @@ class Map {
         });
     }
     getTraversedTiles() : Tile[]{
-        return this.grid.flatMap((tile) => tile.filter((tile) => tile.isTraversedByGuard));
+        return this.grid.flatMap((tile) => tile.filter((tile) => tile.isTraversedByGuard).map(tile => {tile.Type !== 3 ? tile.value = '.' : tile.value; return tile;}));
     }
     getTraversalCount(){
         console.log("Tiles traversed: ", this.getTraversedTiles.length);
+    }
+
+    reset() {
+        // Reset the grid to its initial state
+        this.grid = this.initialGrid.map(row =>
+            row.map(tile => Object.assign(new Tile(), tile))
+        );
+
+        // Reinitialize the guard
+        this.guard = findGuard(this.grid);
+        this.grid[this.guard.currentRow][this.guard.currentCol].isTraversedByGuard = true;
+        this.visitedGuardStates.clear();
     }
 }
 
@@ -221,7 +266,6 @@ function findGuard(grid: Tile[][]) : Guard{
             rowIndex: rowIndex
         });
     }));
-    let rowsWithTilesCopy = rowsWithTiles.map(row => row.map(tile => Object.assign(new Tile(), tile)));
 
     let map : Map = new Map(rowsWithTiles);
     
@@ -229,20 +273,28 @@ function findGuard(grid: Tile[][]) : Guard{
     while(!map.guard.outOfBounds){
         map.moveGuard();
     }
-    // remove first tile
     let possibleTilesForNewObstacle : Tile[] = map.getTraversedTiles();
     
-    console.log('Possible tiles for new obstacle: ', possibleTilesForNewObstacle);
     // loop through traversed tiles, set an obstacle (except on the first 2)
     possibleTilesForNewObstacle.forEach((tile, index) => {
-        let mapCopy = new Map(rowsWithTilesCopy);
-
-        if(index > 1 && index < 4){
+      
+        if(index > 1){
+            map.reset();
             // set to obstacle
             tile.Type = 1;
-            // make a copy of the initial map to add the obstacle
-            mapCopy.grid[tile.rowIndex][tile.colIndex].Type = 1;
-            mapCopy.print();
+            console.log('Setting tile ', tile, 'to obstacle');
+            map.grid[tile.rowIndex][tile.colIndex].Type = 1;
+            map.grid[tile.rowIndex][tile.colIndex].value = "O";
+
+            // Check if guard goes in loop
+            while(!map.guard.outOfBounds){
+                map.moveGuard();
+                if(map.isLooping()){
+                    console.log('Guard is looping');
+                    break;
+                }
+            }
+            map.print();
         }
     });
 
