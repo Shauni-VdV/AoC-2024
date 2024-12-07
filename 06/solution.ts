@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { read, readFileSync } from 'fs';
 const data = readFileSync('../AOC_2024/06/input.txt', 'utf8');
 const rows = data.replace(/\r/g, '').split('\n').map(row => row.split(''));
 
