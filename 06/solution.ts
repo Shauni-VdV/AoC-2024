@@ -7,6 +7,12 @@ class Guard {
     currentCol: number;
     currentDirection: Direction;
     outOfBounds: boolean;
+    isLooping: boolean ;
+    traversedTiles: Set<string>;
+
+    constructor(){
+        this.traversedTiles = new Set<string>();
+    }
 
     move(grid: Tile[][]) : Tile[][]{
         
@@ -89,6 +95,10 @@ class Guard {
             nextTile.Type = 3; // nieuwe tile is guard
             nextTile.value = this.currentDirection; // set direction
         }
+        if(this.traversedTiles.has(`${this.currentRow},${this.currentCol},${this.currentDirection}`)){
+            this.isLooping = true;
+        }
+        this.traversedTiles.add(`${this.currentRow},${this.currentCol},${this.currentDirection}`);
         return grid;
     }
 
@@ -115,8 +125,6 @@ class Map {
     guard: Guard;
     initialGuard: Guard;
 
-    visitedGuardStates: Set<string>;
-
     constructor(grid: Tile[][]){
         // deepcopy for reset
         this.initialGrid = grid.map(row => 
@@ -136,24 +144,14 @@ class Map {
         this.guard = findGuard(this.grid);
         this.grid[this.guard.currentRow][this.guard.currentCol].isTraversedByGuard = true; // First tile is traversed
 
-
-        this.visitedGuardStates = new Set();
-
     }
 
     moveGuard(){
         this.grid = this.guard.move(this.grid);
-
+        // check if loop
         const state = `${this.guard.currentRow},${this.guard.currentCol},${this.guard.currentDirection}`;
-        this.visitedGuardStates.add(state);
 
-    }
 
-    isLooping() : boolean{
-        // guard goes in loop if the same state is reached twice (position and direction)
-        console.log("Visited states: ", this.visitedGuardStates);
-        let isLooping = this.visitedGuardStates.has(`${this.guard.currentRow},${this.guard.currentCol},${this.guard.currentDirection}`);
-        return isLooping;
     }
 
     print(){
@@ -187,7 +185,7 @@ class Map {
         // Reinitialize the guard
         this.guard = findGuard(this.grid);
         this.grid[this.guard.currentRow][this.guard.currentCol].isTraversedByGuard = true;
-        this.visitedGuardStates.clear();
+        this.guard.traversedTiles.clear();
     }
 }
 
@@ -274,10 +272,11 @@ function findGuard(grid: Tile[][]) : Guard{
         map.moveGuard();
     }
     let possibleTilesForNewObstacle : Tile[] = map.getTraversedTiles();
-    
+    let objectsLoopCOunt = 0;
+
     // loop through traversed tiles, set an obstacle (except on the first 2)
     possibleTilesForNewObstacle.forEach((tile, index) => {
-      
+    
         if(index > 1){
             map.reset();
             // set to obstacle
@@ -289,7 +288,8 @@ function findGuard(grid: Tile[][]) : Guard{
             // Check if guard goes in loop
             while(!map.guard.outOfBounds){
                 map.moveGuard();
-                if(map.isLooping()){
+                if(map.guard.isLooping){
+                    objectsLoopCOunt++;
                     console.log('Guard is looping');
                     break;
                 }
@@ -297,5 +297,6 @@ function findGuard(grid: Tile[][]) : Guard{
             map.print();
         }
     });
+    console.log('obj: ' + objectsLoopCOunt);
 
 })();
