@@ -13,7 +13,6 @@ class Guard {
         let currentTile: Tile = grid[this.currentRow][this.currentCol];
         let nextTile : Tile;
 
-        console.log('current tile', currentTile);
         switch(this.currentDirection){
             case Direction.UP:
                 try {
@@ -44,16 +43,13 @@ class Guard {
                 }
                 break;
         }
-        console.log("Attempting to move to tile", nextTile)
 
         if(nextTile == undefined){
-            console.log('next tile is undefined');
             this.outOfBounds = true;
             return grid;
         }
         if(nextTile.Type == 1){
             // eerst draaien
-            console.log('next tile is obstacle, turning..');
             switch(this.currentDirection){
                 case Direction.UP:
                     // turn right
@@ -77,7 +73,6 @@ class Guard {
                     break;
             }
             // dan bewegen
-            console.log('after turning, next tile is:', nextTile);
             this.currentRow = nextTile.rowIndex;
             this.currentCol = nextTile.colIndex;
 
@@ -87,10 +82,8 @@ class Guard {
             nextTile.value = this.currentDirection; // set direction
         } else {
             // enkel bewegen in huidige richting
-            console.log('moving in current direction');
             this.currentRow = nextTile.rowIndex;
             this.currentCol = nextTile.colIndex;
-            console.log('newX:', this.currentRow, 'newY:', this.currentCol);
             currentTile.Type = 0; // 'huidige' tile is geen guard meer
             nextTile.isTraversedByGuard = true; // nieuwe tile is traversed
             nextTile.Type = 3; // nieuwe tile is guard
@@ -130,7 +123,6 @@ class Map {
         this.grid = this.guard.move(this.grid);
     }
 
-
     print(){
         console.log('Guard is at col: ', this.guard.currentRow, 'row: ', this.guard.currentCol, 'facing', this.guard.currentDirection);
         this.grid.forEach(row => {
@@ -146,8 +138,11 @@ class Map {
             );
         });
     }
+    getTraversedTiles() : Tile[]{
+        return this.grid.flatMap((tile) => tile.filter((tile) => tile.isTraversedByGuard));
+    }
     getTraversalCount(){
-        console.log("Tiles traversed: ", this.grid.flatMap((tile) => tile.filter((tile) => tile.isTraversedByGuard)).length);
+        console.log("Tiles traversed: ", this.getTraversedTiles.length);
     }
 }
 
@@ -170,7 +165,41 @@ function findGuard(grid: Tile[][]) : Guard{
 }
 
 
-(function solvePt1(){
+// (function solvePt1(){
+//     let rowsWithTiles = rows.map((row, rowIndex) => row.map((tile, colIndex) => {
+//         let tileType : number;
+//         switch(tile){
+//             case '.':
+//                 tileType = 0;
+//                 break;
+//             case '#':
+//                 tileType = 1;
+//                 break;
+//             default:
+//                 tileType = 3;
+//                 break;
+//         }
+//         return Object.assign(new Tile(), {
+//             value: tile, 
+//             Type: tileType, 
+//             isTraversedByGuard: false,
+//             colIndex: colIndex,
+//             rowIndex: rowIndex
+//         });
+//     }));
+        
+
+//     let map : Map = new Map(rowsWithTiles);
+
+//     while(!map.guard.outOfBounds){
+//         map.moveGuard();
+//     }
+//     map.getTraversalCount();
+
+//     map.print();
+// })();
+
+(function solvePt2() {
     let rowsWithTiles = rows.map((row, rowIndex) => row.map((tile, colIndex) => {
         let tileType : number;
         switch(tile){
@@ -192,14 +221,29 @@ function findGuard(grid: Tile[][]) : Guard{
             rowIndex: rowIndex
         });
     }));
-        
+    let rowsWithTilesCopy = rowsWithTiles.map(row => row.map(tile => Object.assign(new Tile(), tile)));
 
     let map : Map = new Map(rowsWithTiles);
-
+    
+    // Let the guard move across the map to find the traversed tiles
     while(!map.guard.outOfBounds){
         map.moveGuard();
     }
-    map.getTraversalCount();
+    // remove first tile
+    let possibleTilesForNewObstacle : Tile[] = map.getTraversedTiles();
+    
+    console.log('Possible tiles for new obstacle: ', possibleTilesForNewObstacle);
+    // loop through traversed tiles, set an obstacle (except on the first 2)
+    possibleTilesForNewObstacle.forEach((tile, index) => {
+        let mapCopy = new Map(rowsWithTilesCopy);
 
-    map.print();
+        if(index > 1 && index < 4){
+            // set to obstacle
+            tile.Type = 1;
+            // make a copy of the initial map to add the obstacle
+            mapCopy.grid[tile.rowIndex][tile.colIndex].Type = 1;
+            mapCopy.print();
+        }
+    });
+
 })();
