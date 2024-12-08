@@ -13,26 +13,15 @@ rows.forEach(row => {
     console.log("Equation: ", equation);
 });
 
-function checkEquation(equationResult, equation) : boolean{
-    // + or *
-    let actualResult =0;
-    let operators = '+*';
-    for(let i = 1; i < equation.length; i++){
-        for(let j = 0; j < operators.length; j++){
-            switch(operators[j]){
-                case '+':
-                    actualResult+= equation[i];
-                    break;
-                case '*':
-                    if(actualResult === 0){
-                        actualResult ++;
-                    }
-                    actualResult*= equation[i];
-                    break;
-            }
-        }   
-    }
-    return actualResult === equationResult;
+function checkEquation(equationResult, equation : number[]) : boolean{
+    // altijd * of + doen van de eerste 2 getallen, en de rest er achter hangen
+    // de lijst wordt zo altijd korter, tot het 1 getal is
+    // door recursie gaat elke mogelijke combinatie overlopen worden
+    if(equation.length == 1) return equation[0] == equationResult;
+
+    if(checkEquation(equationResult, [equation[0] + equation[1], ...equation.slice(2)])) return true;
+    if(checkEquation(equationResult, [equation[0] * equation[1], ...equation.slice(2)])) return true;
+
 }
 
 console.log(correctEquations.reduce((a,b) => a + b));
