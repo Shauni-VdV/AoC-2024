@@ -33,18 +33,40 @@ antennas.forEach(antenna => {
     otherAntennas.forEach(otherAntenna => {
         let xDistance = otherAntenna.col - x;
         let yDistance = otherAntenna.row - y;
-        // if(xDistance === 0 && yDistance === 0) return;
+        if(xDistance === 0 && yDistance === 0) return;
         // place antinode at the same distance on opposite sides of each antenna
-        let antinode1 = {row: otherAntenna.row + yDistance, col: otherAntenna.col + xDistance, value: '#'};
-        checkInBounds(antinode1.row, antinode1.col) ? antinodes.push(antinode1) : null;
-        let antinode2 = {row: antenna.row - yDistance, col: antenna.col - xDistance, value: '#'};
-        checkInBounds(antinode2.row, antinode2.col) ? antinodes.push(antinode2) : null;
+        let newAntinodes : Coord[] = createAntinodes(antenna, otherAntenna, xDistance, yDistance);
+        if(newAntinodes.length === 0) return;
+        antinodes.push(...newAntinodes);
+        
 
         
     });
 });
 function checkInBounds(row: number, col: number){
     return (0 <= row && row < rows.length) && (0 <= col && col < rows[0].length);
+}
+
+function createAntinodes(antenna1: Coord, antenna2: Coord, xDistance: number, yDistance: number) :Coord[]{
+    let newAntinodes :Coord[] = [];
+    let x = antenna1.col + xDistance;
+    let y = antenna1.row + yDistance;
+    // nieuwe antinodes voor eerste antenna
+
+    while(checkInBounds(y, x)){
+        newAntinodes.push({row: y, col: x, value: '#'});
+        x += xDistance;
+        y += yDistance;
+    }
+    // nieuwe antinodes voor tweede antenna
+    x = antenna2.col - xDistance;
+    y = antenna2.row - yDistance;
+    while(checkInBounds(y, x)){
+        newAntinodes.push({row: y, col: x, value: '#'});
+        x += xDistance;
+        y += yDistance;
+    }
+    return newAntinodes;
 }
 
 function findUniqueAntinodes(antinodes: Coord[]){
