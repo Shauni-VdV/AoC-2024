@@ -21,7 +21,8 @@ function checkEquation(equationResult, equation : number[]) : boolean{
 
     if(checkEquation(equationResult, [equation[0] + equation[1], ...equation.slice(2)])) return true;
     if(checkEquation(equationResult, [equation[0] * equation[1], ...equation.slice(2)])) return true;
-
+    if(checkEquation(equationResult, [parseInt(equation[0].toString() + equation[1].toString()), ...equation.slice(2)])) return true;
 }
+
 
 console.log(correctEquations.reduce((a,b) => a + b));
