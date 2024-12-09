@@ -114,21 +114,22 @@ function solvePt2(){
 
 function reorganize2(diskInput: DiskSpace[]){
     let reorganizedDisk : DiskSpace[] = [];
-    let disk = JSON.parse(JSON.stringify(diskInput)); // deepcopy want referenties zijn (misschien; i didn't bother checking it without) kaka
+    let disk : DiskSpace[] = JSON.parse(JSON.stringify(diskInput)); // deepcopy want referenties zijn (misschien; i didn't bother checking it without) kaka
     // enkel als de volledige file 'block' erin past, mag het verplaatst worden
     // dus van achter naar voor door de lijst gaan, kijken naar hoeveel items van die value er zijn (in totaal in dit geval)
     // dan kijken naar de eerste groep van free spaces, daar de lengte van nemen
     // als freespaces groter is dan de file, dan mag het verplaatst worden
     console.log(disk.map(block => block.fileId === null ? '.' : block.fileId).join(''));
-
-    for(let i = disk.length -1 ; i >= 0; i-= disk[i].value){
-
+    for(let i = disk.length -1 ; i >= 0; i = i - disk[i].value){
+        console.log('i', i);
         let fileSize = disk[i].value;
         console.log('file size', fileSize);
-        let fileStartIndex = disk.indexOf(disk.findLast(block => block.fileId === disk[i].fileId));
+        console.log('file id', disk[i].fileId);
+        let fileStartIndex = disk.indexOf(disk.findLast(block => block.fileId === disk[i].fileId)) - fileSize + 1;
 
         let firstFreeSpaceSize = 0;
         let firstFreeSpaceIndex = disk.indexOf(disk.find(block => !block.isFile));
+        // find the size of the first free space
         for(let j = firstFreeSpaceIndex; j < disk.length; j++){
             if(disk[j].isFile){
                 break;
@@ -136,14 +137,23 @@ function reorganize2(diskInput: DiskSpace[]){
             firstFreeSpaceSize++;
         }
         console.log('first free space size', firstFreeSpaceSize);
+        console.log('first free space index', firstFreeSpaceIndex);
 
         if(fileSize <= firstFreeSpaceSize){
-            console.log('file fits in free space')
-            // move file to free space
-           
-        } else { 
-            break;
+            console.log("REPLACING FILE ----------------------------------------------")
+            // move file to free space, 
+            let fileBlocks = disk.splice(fileStartIndex, fileSize);
+            let freeSpaceBlocks = disk.splice(firstFreeSpaceIndex, fileSize);
+            console.log('file blocks', fileBlocks);
+            console.log('free space blocks', freeSpaceBlocks);
+
+            disk.splice(fileStartIndex, 0, ...freeSpaceBlocks);
+            disk.splice(firstFreeSpaceIndex, 0 , ...fileBlocks);
+
+            //disk.splice(fileStartIndex, fileSize, ...disk.splice(firstFreeSpaceIndex, fileSize))
+            //disk.fill(new DiskSpace(null, false, null), fileStartIndex, disk.length);
         }
+
         console.log(disk.map(block => block.fileId === null ? '.' : block.fileId).join(''));
 
 
