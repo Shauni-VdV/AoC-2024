@@ -78,9 +78,11 @@ function formatDisk(disk: DiskSpace[]){
 
 function getChecksum(disk: DiskSpace[]){
     let checksum = 0;
-    let fileBlocks = disk.filter(block => block.isFile);
-    fileBlocks.forEach((block, index) => {
-        checksum += block.fileId * index;
+    disk.forEach((block, index) => {
+        if(block.isFile){
+            checksum += block.fileId * index;
+
+        }
     });
     return checksum;
 }
@@ -113,21 +115,16 @@ function solvePt2(){
 }
 
 function reorganize2(diskInput: DiskSpace[]){
-    let reorganizedDisk : DiskSpace[] = [];
     let disk : DiskSpace[] = JSON.parse(JSON.stringify(diskInput)); // deepcopy want referenties zijn (misschien; i didn't bother checking it without) kaka
 
     // van achter naar voor door diskspace items loopen
     for(let i = disk.length -1 ; i >= 0; i--){
         
         if(disk[i].isFile){
-            console.log("Attempting to move file ----------------------------------------------")
-            console.log("file:" ,disk[i]);
             // van voor naar achter, op zoek naar een 'free space' block dat groot genoeg iss
             for(let j= 0; j <= disk.length - 1 ; j++){
                 if(!disk[j].isFile && disk[j].fileId !== 0 && j < i){
-                    console.log('Checking free space:' ,disk[j]);
                     if(disk[i].value <= disk[j].value){ // file past in free space
-                        console.log('FOUND FREE SPACE !')
                         //swap swap file blocks with free space blocks
                         let remainingFileBlockSpace = disk[j].value - disk[i].value; // Remaining space in the original free space block
 
@@ -135,28 +132,24 @@ function reorganize2(diskInput: DiskSpace[]){
                         let freeSpaceBlock = disk[j];
                         freeSpaceBlock.value = disk[i].value; 
 
-                        console.log('File block"', fileBlock);
-                        console.log('Free space block', freeSpaceBlock);
 
                         // splice freespaceblock with deleteNr of 1, insert fileblock + a new free space block with the remaining value
                         disk.splice(i, 1, freeSpaceBlock);
-                        console.log('disk after splice of fileblock', disk.map(block => block.fileId === null ? '.' : block.fileId).join(''));
 
                         let newFreeSpaceBlock = [fileBlock, new DiskSpace(remainingFileBlockSpace, false, null)];
                         disk.splice(j, 1, ...newFreeSpaceBlock);
-                        console.log('disk after splice of freespace', disk.map(block => block.fileId === null ? '.' : block.fileId).join(''));
                        
                         break;
                     }
                 }
                 
             }
-            console.log(formatDisk(disk).map(block => block.fileId === null ? '.' : block.fileId).join(''));
+            //console.log(formatDisk(disk).map(block => block.fileId === null ? '.' : block.fileId).join(''));
 
         }
 
     }
-    return reorganizedDisk;
+    return disk;
 }
 
 function reorganize2Old(diskInput: DiskSpace[]){
