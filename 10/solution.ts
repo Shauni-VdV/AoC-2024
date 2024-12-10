@@ -24,8 +24,8 @@ class Coord {
     printGrid(grid);
 
     // trailheads always start with value 0
-    for(let row = 0; row < grid.length -1; row++){
-        for(let col = 0; col < rows[0].length -1; col++){
+    for(let row = 0; row <= grid.length -1; row++){
+        for(let col = 0; col <= rows[0].length -1; col++){
             if(grid[row][col].value == 0){
                 console.log("--------------------")
                 console.log('Trailhead found at', row, col);
@@ -38,6 +38,29 @@ class Coord {
     }   
     console.log('Total trail score:', totalTrailScore);
 
+})();
+
+(function solvePt2(){
+    let totalTrailRating = 0;
+    let grid: Coord[][] = rows.map((row, rowIndex) => {
+        return row.map((col, colIndex) => new Coord(rowIndex, colIndex, parseInt(col)));
+    });
+    printGrid(grid);
+
+    // trailheads always start with value 0
+    for(let row = 0; row <= grid.length -1; row++){
+        for(let col = 0; col <= rows[0].length -1; col++){
+            if(grid[row][col].value == 0){
+                console.log("--------------------")
+                console.log('Trailhead found at', row, col);
+                // find trail length
+                let trailRating : number = findTrailRating(grid, row, col, 0);
+                console.log("trail score", trailRating);
+                totalTrailRating += trailRating;
+            }
+        }
+    }   
+    console.log('Total trail rating:', totalTrailRating);
 })();
 
 function findTrailScore(grid: Coord[][], row: number, col: number){
@@ -91,7 +114,7 @@ function printGrid(grid: Coord[][]){
 
 }
 
-function findPaths(grid: Coord[][], row: number, col: number, trailCount : number) : number{
+function findTrailRating(grid: Coord[][], row: number, col: number, trailCount : number) : number{
     let currentValue = grid[row][col].value;
     let nextValue = currentValue + 1;
     let nextCoords : Coord[] = [];
@@ -117,7 +140,7 @@ function findPaths(grid: Coord[][], row: number, col: number, trailCount : numbe
    
     if(nextCoords.length > 0){
         nextCoords.forEach(coord => {
-            trailCount = findPaths(grid, coord.row, coord.col, trailCount);
+            trailCount = findTrailRating(grid, coord.row, coord.col, trailCount);
         });
     } else {
         console.log('No next value found for', row, col);
