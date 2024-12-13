@@ -17,6 +17,11 @@ class Coord {
 class Fence { // = line between 2 coords
     firstCoord: Coord;
     secondCoord: Coord;
+
+    constructor(firstCoord: Coord, secondCoord: Coord){
+        this.firstCoord = firstCoord;
+        this.secondCoord = secondCoord;
+    }
 }
 
 class Plot {
@@ -24,11 +29,13 @@ class Plot {
      plantType: string;
      area: number;
      perimeter: number;
+     fences: Fence[];
+     sides: number;
 }
 
 let grid = rows.map((row, rowIndex) => row.map((col, colIndex) => new Coord(rowIndex, colIndex, col)));
 
-(function solvePt1(){
+(function solvePt1And2(){
     let plots: Plot[] = [];
     // Find area & perimeter of each area
     // = plants with adjoining coords in cardinal directions
@@ -49,14 +56,18 @@ let grid = rows.map((row, rowIndex) => row.map((col, colIndex) => new Coord(rowI
             }
         });
     });
+    console.log(plots.length)
+
     calculatePerimeter(plots);
+    calculateSides(plots);
     printPlots(plots);
 
 })();
 // Calculate  perimeter
 function calculatePerimeter(plots: Plot[]) {
-    //let builtFences : Fence[] = [];
     plots.forEach(plot => {
+        let builtFences : Fence[] = [];
+
         let fences = 0;
         let directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
         plot.plantCoords.forEach(plant => {
@@ -70,10 +81,9 @@ function calculatePerimeter(plots: Plot[]) {
                         // it's not a plant of the same type, check if there is already a fence there
                         //console.log('not a plant of the same type')
                         let firstCoord = new Coord(plant.row, plant.col, plot.plantType);
-                        let secondCoord = Object.assign(Coord, {...newCoord, value: grid[newCoord.row][newCoord.col].value});
-                        let fence : Fence = Object.assign(new Fence(), {firstCoord, secondCoord});
-                        //f(!builtFences.find(f => f.firstCoord.row === firstCoord.row && f.firstCoord.col === firstCoord.col && f.secondCoord.row === secondCoord.row && f.secondCoord.col === secondCoord.col)){
-                          //  builtFences.push(fence);
+                        let secondCoord = new Coord(newCoord.row, newCoord.col, grid[newCoord.row][newCoord.col].value);
+                        let fence : Fence = new Fence(firstCoord, secondCoord);
+                            builtFences.push(fence);
                             fences++;
                         //}
                     }
@@ -81,8 +91,8 @@ function calculatePerimeter(plots: Plot[]) {
                     // edge of grid, add fence
                     let firstCoord = new Coord(plant.row, plant.col, plot.plantType);
                     let secondCoord = new Coord(plant.row + dir[0], plant.col + dir[1], 'NONE');
-                    let fence : Fence = Object.assign(new Fence(), {firstCoord, secondCoord});
-                   // builtFences.push(fence);
+                    let fence : Fence = new Fence(firstCoord, secondCoord);
+                    builtFences.push(fence);
                     fences++;
                 }
                 
@@ -90,9 +100,19 @@ function calculatePerimeter(plots: Plot[]) {
         });
        // console.log(builtFences);
         plot.perimeter = fences;
+        plot.fences = builtFences;
     });
     
     //return builtFences.length;
+}
+
+function calculateSides(plots: Plot[]){
+    plots.forEach(plot => {
+        let sides = 0;
+        // do magic please
+       
+    })
+    
 }
 
 // Helpers
@@ -115,9 +135,12 @@ function findArea(grid: Coord[][], row: number, col: number, plantType: string, 
 }
 function printPlots(plots: Plot[]){
     plots.forEach(plot => {
-        console.log("Plot of type", plot.plantType, "has area", plot.area, "and perimeter", plot.perimeter);
+       // console.log("Plot of type", plot.plantType, "has area", plot.area, "and perimeter", plot.perimeter);
+        console.log("Plot of type", plot.plantType, "has area", plot.area, "and nr of sides", plot.sides);
+
     });
     console.log("total price" , plots.reduce((acc, plot) => acc + plot.area * plot.perimeter, 0));
+    console.log("Total price with discount", plots.reduce((acc, plot) => acc + plot.area * plot.sides, 0));
 }
 
 function isInBounds(coord: Coord){
