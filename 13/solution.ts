@@ -30,8 +30,9 @@ let machines: Machine[] = mapInput();
 
 
 function findOptimalPresses(machine: Machine){
-    let APresses = 0;
-    let BPresses = 0;
+    let ATokenCost = 3;
+    let BTokenCost = 1;
+
 }
 
 // Helpers

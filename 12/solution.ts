@@ -107,12 +107,57 @@ function calculatePerimeter(plots: Plot[]) {
 }
 
 function calculateSides(plots: Plot[]){
+    plots = plots.filter(plot => plot.plantType === 'A')
     plots.forEach(plot => {
-        let sides = 0;
-        // do magic please
-       
+        let sides = plot.perimeter;
+        let fencesVisited = new Set<Fence>();
+
+        plot.fences.forEach(fence => {
+            //console.log("Already visited:", fencesVisited);
+
+            if(fencesVisited.has(fence)) return;
+
+            console.log('-----------------------------')
+            console.log("Eval fence", fence);
+            let fencesInLine = countFencesInLine(fence, plot.fences);
+            console.log("fences in line", fencesInLine);
+            fencesInLine.Set.forEach(fence => fencesVisited.add(fence));
+            if(fencesInLine.number > 1){
+                sides - (fencesInLine.number);
+            }
+        })
+
+        plot.sides = sides;
     })
     
+}
+
+function countFencesInLine(fence: Fence, fences: Fence[], visitedFences: Set<Fence> = new Set<Fence>()) : { number, Set} {
+    visitedFences.add(fence);
+
+    let isHorizontal = fence.firstCoord.row === fence.secondCoord.row;
+    let isVertical = fence.firstCoord.col === fence.secondCoord.col;
+    let fencesInLine = 1;
+
+    fences.forEach(otherFence => {
+        if(visitedFences.has(otherFence)) return;
+        if(isHorizontal){
+            if(otherFence.firstCoord.row === fence.firstCoord.row){ // same row
+                if(otherFence.firstCoord.col === fence.firstCoord.col + 1 || otherFence.firstCoord.col === fence.firstCoord.col - 1){ // neighbor
+                    fencesInLine += countFencesInLine(otherFence, fences, visitedFences).number;
+                }
+            }
+        }
+
+        if(isVertical){
+            if(otherFence.firstCoord.col === fence.firstCoord.col){ // same col
+                if(otherFence.firstCoord.row === fence.firstCoord.row + 1 || otherFence.firstCoord.row === fence.firstCoord.row - 1){ // neighbor
+                    fencesInLine += countFencesInLine(otherFence, fences, visitedFences).number;
+                }
+            }
+        }
+    });
+    return {number: fencesInLine, Set: visitedFences};
 }
 
 // Helpers
