@@ -60,27 +60,51 @@ moves.forEach((move, index) => {
     console.log(index, ':', move);
     // move robot
     let robotTile = grid[robot.row][robot.col];
-    let attemptedTile = getNextTileForRobot(robot, move);
+    let attemptedTile = getNextTile(robot, move);
 
     // Next tile is wall ? can't move in this direction
     if(attemptedTile.Type == TileType.Wall) return; 
     // Next tile is empty ? simply move the robot
     if(attemptedTile.Type == TileType.Empty){
-        robotTile.Type = TileType.Empty;
-        attemptedTile.Type = TileType.Robot;
-        robot.row = attemptedTile.row;
-        robot.col = attemptedTile.col;
+        moveRobot(attemptedTile, robotTile);
     }
     
-    // Next tile is box? move the box (for now just act as if it is a wall)
+    // Next tile is box? move the box
     if(attemptedTile.Type == TileType.Box){
-       return;
+        moveBox(attemptedTile, move) ? moveRobot(attemptedTile, robotTile) : null;
     }
-    printGrid();
 
 });
+printGrid();
+calculateCoordinates();
 
-function getNextTileForRobot(robot: Robot, direction: Direction): Tile{
+function moveRobot(attemptedTile: Tile, robotTile: Tile){
+    robotTile.Type = TileType.Empty;
+    attemptedTile.Type = TileType.Robot;
+    robot.row = attemptedTile.row;
+    robot.col = attemptedTile.col;
+}
+
+function moveBox(box: Tile, direction: Direction): boolean{
+    let nextTile = getNextTile(box, direction);
+    if(nextTile.Type == TileType.Wall) return false;
+    // next tile is empty, move the box
+    if(nextTile.Type == TileType.Empty){
+        box.Type = TileType.Empty;
+        nextTile.Type = TileType.Box;
+        return true;
+    }
+    // next tile is box, try moving the next box
+    if(nextTile.Type == TileType.Box){
+        if(moveBox(nextTile, direction)){
+            box.Type = TileType.Empty;
+            nextTile.Type = TileType.Box;
+            return true;
+        }
+    }
+}
+
+function getNextTile(robot: Robot, direction: Direction): Tile{
     let nextTile: Tile;
     switch(direction){
         case Direction.Up:
@@ -113,4 +137,17 @@ function printGrid(){
     });
 }
 
-printGrid();
+function calculateCoordinates(): number{
+    // for each box, the coordinates are  (100 * row) + col
+    let sum = 0;
+    grid.forEach((row, rowIndex) => {
+        row.forEach((col, colIndex) => {
+            if(col.Type == TileType.Box){
+                console.log('Box:', (100 * rowIndex) + colIndex);
+                sum += (100 * rowIndex) + colIndex;
+            }
+        });
+    });
+    console.log('Sum of GPS Coordinates:', sum);
+    return sum;
+}
