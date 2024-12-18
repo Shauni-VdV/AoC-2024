@@ -31,32 +31,40 @@ enum Direction {
 
 let grid: Tile[][] = [];
 let robot: Robot = new Robot();
+
 //#region Parse Input
-// Grid
 const rows = data.split('\r\n\r')[0].replace(/\r/g, '').split('\n').map(row => row.split(''));
-rows.forEach((row, rowIndex) => {
-    let gridRow: Tile[] = [];
-    row.forEach((col, colIndex) => {
-        let tile = new Tile();
-        tile.row = rowIndex;
-        tile.col = colIndex;
-        tile.Type = col as TileType;
-        gridRow.push(tile);
-        if(tile.Type == TileType.Robot){
-            robot.row = rowIndex;
-            robot.col = colIndex;
-        }
+
+// Grid
+// Takes the initial rows from the input and maps it to a 2D array of Tile objects
+function mapGrid(){
+    rows.forEach((row, rowIndex) => {
+        let gridRow: Tile[] = [];
+        row.forEach((col, colIndex) => {
+            let tile = new Tile();
+            tile.row = rowIndex;
+            tile.col = colIndex;
+            tile.Type = col as TileType;
+            gridRow.push(tile);
+            if(tile.Type == TileType.Robot){
+                robot.row = rowIndex;
+                robot.col = colIndex;
+            }
+        });
+        grid.push(gridRow);
     });
-    grid.push(gridRow);
-});
+}
+
 
 // Moves
 const moves: Direction[] = data.split('\r\n\r')[1].replace(/\r|\n/g, '').split('').map(row => row[0] as Direction);
 console.log(moves);
+
 //#endregion
 
 //#region Part1
 function solvePt1(){
+    mapGrid();
     moves.forEach((move, index) => {
         console.log(index, ':', move);
         // move robot
@@ -79,6 +87,7 @@ function solvePt1(){
     // printGrid();
     // calculateCoordinates();
 }
+
 
 
 function moveRobot(attemptedTile: Tile, robotTile: Tile){
@@ -134,36 +143,70 @@ function getNextTile(robot: Robot, direction: Direction): Tile{
 function solvePt2(){
     grid = [];
 
-    grid = mapWideGrid();
+    grid = createWideGrid();
+    mapWideGrid();
 
     printGrid();
+    printGridWithCoordinates();
+
+    findRobot();
+    
+    moves.forEach((move, index) => {
+        console.log(index, ':', move);
+        // move robot
+        let robotTile = grid[robot.row][robot.col];
+        console.log('Robot:' ,robotTile);
+        let attemptedTile = getNextTile(robot, move);
+    
+        // Next tile is wall ? can't move in this direction
+        if(attemptedTile.Type == TileType.Wall) return; 
+        // Next tile is empty ? simply move the robot
+        if(attemptedTile.Type == TileType.Empty){
+            moveRobot(attemptedTile, robotTile);
+        }
+        
+        // Next tile is box? move the box
+        if(attemptedTile.Type == TileType.Box){
+            moveWideBox(attemptedTile, move) ? moveRobot(attemptedTile, robotTile) : null;
+        }
+        printGrid();
+    
+    });
+    // printGrid();
+    // calculateCoordinates();
+}
+
+
+function moveWideBox(box: Tile, direction: Direction): boolean {
+    let nextTile: Tile = getNextTile(box, direction); // Get next tile, regardless of direction
+    let secondNextTile: Tile;
+
+    return false;
 }
 
 solvePt2();
+
 
 //#endregion
 
 
 //#region Helpers
 
-function mapWideGrid(): Tile[][]{
-    let wideGrid = [];
+function createWideGrid(): Tile[][]{
+    let wideGrid : Tile[][] = [];
     rows.forEach((row, rowIndex) => {
         let gridRow: Tile[] = [];
     
         row.forEach((col, colIndex) => {
             let tile = new Tile();
-            tile.row = rowIndex;
-            tile.col = colIndex;
             tile.Type = col as TileType;
-
+            
             // duplicate empty tiles
             if(tile.Type == TileType.Empty){
                 gridRow.push(tile);
                 let secondTile = new Tile();
                 secondTile.Type = TileType.Empty;
-                secondTile.row = rowIndex;
-                secondTile.col = colIndex + 1;
+     
                 gridRow.push(secondTile);
                 return;
             }
@@ -172,36 +215,25 @@ function mapWideGrid(): Tile[][]{
                 gridRow.push(tile);
                 let secondTile = new Tile();
                 secondTile.Type = TileType.Wall;
-                secondTile.row = rowIndex;
-                secondTile.col = colIndex + 1;
                 gridRow.push(secondTile);
                 return;
             }
             // Duplicate boxes
             if(tile.Type == TileType.Box){
-                console.log('Box:', rowIndex, colIndex);
                 tile.Type = TileType.Box_Left;
                 gridRow.push(tile);
-                console.log('pushed left side of box', tile);
 
                 let secondTile = new Tile();
                 secondTile.Type = TileType.Box_Right;
-                secondTile.row = rowIndex;
-                secondTile.col = colIndex + 1;
 
                 gridRow.push(secondTile);
-                console.log('pushed right side of box', secondTile);
                 return;
             }
             // Add empty space behind robot
             if(tile.Type == TileType.Robot){
-                robot.row = rowIndex;
-                robot.col = colIndex;
                 gridRow.push(tile);
                 let secondTile = new Tile();
                 secondTile.Type = TileType.Empty;
-                secondTile.row = rowIndex;
-                secondTile.col = colIndex + 1;
                 gridRow.push(secondTile);
                 return;
             }
@@ -211,11 +243,50 @@ function mapWideGrid(): Tile[][]{
     });
     return wideGrid;
 }
+// Loops through all rows and columns of the wide grid, and correctly sets all tile values
+function mapWideGrid(){
+    grid.forEach((row, rowIndex) => {
+        
+        row.forEach((col, colIndex) => {
+            let tile = new Tile();
+            tile.row = rowIndex;
+            tile.col = colIndex;
+            tile.Type = col.Type as TileType;
+            if(tile.Type == TileType.Robot){
+                robot.row = rowIndex;
+                robot.col = colIndex;
+            }
+        });
+    });
+}
+
+function findRobot(){
+    grid.forEach((row, rowIndex) => {
+        row.forEach((col, colIndex) => {
+            if(col.Type === TileType.Robot){
+                robot.row = rowIndex;
+                robot.col = colIndex;
+            }
+        });
+    });
+}
+
+
 function printGrid(){
     grid.forEach((row) => {
         let rowString = '';
         row.forEach((col) => {
             rowString += col.Type;
+        });
+        console.log(rowString);
+    });
+}
+
+function printGridWithCoordinates(){
+    grid.forEach((row) => {
+        let rowString = '';
+        row.forEach((col) => {
+            rowString += col.Type + '(' + col.row + ',' + col.col + ')';
         });
         console.log(rowString);
     });
